@@ -71,9 +71,11 @@ func BenchmarkDirMode(b *testing.B) {
 	if err != nil {
 		b.Fatalf("could not get devnull %v", err)
 	}
+	defer devnull.Close()
 	log.SetFlags(0)
 	log.SetOutput(ioutil.Discard)
 
+	// Run the real benchmark
 	for x := 0; x < b.N; x++ {
 		os.Stdout = devnull
 		os.Stderr = devnull
