@@ -38,14 +38,14 @@ func BenchmarkDirMode(b *testing.B) {
 	if err != nil {
 		b.Fatalf("could not parse extensions: %v", err)
 	}
-	pluginopts.ExtensionsParsed = *tmpExt
+	pluginopts.ExtensionsParsed = tmpExt
 
 	pluginopts.StatusCodes = "200,204,301,302,307,401,403"
 	tmpStat, err := helper.ParseStatusCodes(pluginopts.StatusCodes)
 	if err != nil {
 		b.Fatalf("could not parse status codes: %v", err)
 	}
-	pluginopts.StatusCodesParsed = *tmpStat
+	pluginopts.StatusCodesParsed = tmpStat
 
 	wordlist, err := ioutil.TempFile("", "")
 	if err != nil {
