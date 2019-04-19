@@ -20,10 +20,10 @@ type Result struct {
 }
 
 // ToString converts the Result to it's textual representation
-func (r *Result) ToString(g *Gobuster) (string, error) {
+func (r Result) ToString(g Gobuster) (string, error) {
 	s, err := g.plugin.ResultToString(r)
 	if err != nil {
 		return "", err
 	}
-	return *s, nil
+	return s, nil
 }

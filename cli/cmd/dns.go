@@ -31,45 +31,45 @@ func runDNS(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func parseDNSOptions() (*libgobuster.Options, *gobusterdns.OptionsDNS, error) {
-	globalopts, err := parseGlobalOptions()
+func parseDNSOptions() (globalopts libgobuster.Options, plugin gobusterdns.OptionsDNS, err error) {
+	globalopts, err = parseGlobalOptions()
 	if err != nil {
-		return nil, nil, err
+		return globalopts, plugin, err
 	}
-	plugin := gobusterdns.NewOptionsDNS()
+	plugin = gobusterdns.OptionsDNS{}
 
 	plugin.Domain, err = cmdDNS.Flags().GetString("domain")
 	if err != nil {
-		return nil, nil, fmt.Errorf("invalid value for domain: %v", err)
+		return globalopts, plugin, fmt.Errorf("invalid value for domain: %v", err)
 	}
 
 	plugin.ShowIPs, err = cmdDNS.Flags().GetBool("showips")
 	if err != nil {
-		return nil, nil, fmt.Errorf("invalid value for showips: %v", err)
+		return globalopts, plugin, fmt.Errorf("invalid value for showips: %v", err)
 	}
 
 	plugin.ShowCNAME, err = cmdDNS.Flags().GetBool("showcname")
 	if err != nil {
-		return nil, nil, fmt.Errorf("invalid value for showcname: %v", err)
+		return globalopts, plugin, fmt.Errorf("invalid value for showcname: %v", err)
 	}
 
 	plugin.WildcardForced, err = cmdDNS.Flags().GetBool("wildcard")
 	if err != nil {
-		return nil, nil, fmt.Errorf("invalid value for wildcard: %v", err)
+		return globalopts, plugin, fmt.Errorf("invalid value for wildcard: %v", err)
 	}
 
 	plugin.Timeout, err = cmdDNS.Flags().GetDuration("timeout")
 	if err != nil {
-		return nil, nil, fmt.Errorf("invalid value for timeout: %v", err)
+		return globalopts, plugin, fmt.Errorf("invalid value for timeout: %v", err)
 	}
 
 	plugin.Resolver, err = cmdDNS.Flags().GetString("resolver")
 	if err != nil {
-		return nil, nil, fmt.Errorf("invalid value for resolver: %v", err)
+		return globalopts, plugin, fmt.Errorf("invalid value for resolver: %v", err)
 	}
 
 	if plugin.Resolver != "" && runtime.GOOS == "windows" {
-		return nil, nil, fmt.Errorf("currently can not set custom dns resolver on windows. See https://golang.org/pkg/net/#hdr-Name_Resolution")
+		return globalopts, plugin, fmt.Errorf("currently can not set custom dns resolver on windows. See https://golang.org/pkg/net/#hdr-Name_Resolution")
 	}
 
 	return globalopts, plugin, nil

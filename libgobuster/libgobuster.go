@@ -13,14 +13,14 @@ import (
 type SetupFunc func(*Gobuster) error
 
 // ProcessFunc is the "process" function prototype for implementations
-type ProcessFunc func(*Gobuster, string) ([]Result, error)
+type ProcessFunc func(Gobuster, string) ([]Result, error)
 
 // ResultToStringFunc is the "to string" function prototype for implementations
-type ResultToStringFunc func(*Gobuster, *Result) (*string, error)
+type ResultToStringFunc func(Gobuster, Result) (string, error)
 
 // Gobuster is the main object when creating a new run
 type Gobuster struct {
-	Opts             *Options
+	Opts             Options
 	context          context.Context
 	requestsExpected int
 	requestsIssued   int
@@ -31,7 +31,7 @@ type Gobuster struct {
 }
 
 // NewGobuster returns a new Gobuster object
-func NewGobuster(c context.Context, opts *Options, plugin GobusterPlugin) (*Gobuster, error) {
+func NewGobuster(c context.Context, opts Options, plugin GobusterPlugin) (Gobuster, error) {
 	var g Gobuster
 	g.Opts = opts
 	g.plugin = plugin
@@ -40,7 +40,7 @@ func NewGobuster(c context.Context, opts *Options, plugin GobusterPlugin) (*Gobu
 	g.resultChan = make(chan Result)
 	g.errorChan = make(chan error)
 
-	return &g, nil
+	return g, nil
 }
 
 // Results returns a channel of Results

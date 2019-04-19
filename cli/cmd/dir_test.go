@@ -79,12 +79,12 @@ func BenchmarkDirMode(b *testing.B) {
 	for x := 0; x < b.N; x++ {
 		os.Stdout = devnull
 		os.Stderr = devnull
-		plugin, err := gobusterdir.NewGobusterDir(ctx, &globalopts, pluginopts)
+		plugin, err := gobusterdir.NewGobusterDir(ctx, globalopts, pluginopts)
 		if err != nil {
 			b.Fatalf("error on creating gobusterdir: %v", err)
 		}
 
-		if err := cli.Gobuster(ctx, &globalopts, plugin); err != nil {
+		if err := cli.Gobuster(ctx, globalopts, plugin); err != nil {
 			b.Fatalf("error on running goubster: %v", err)
 		}
 		os.Stdout = oldStdout

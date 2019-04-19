@@ -28,7 +28,7 @@ func TestGet(t *testing.T) {
 	h := httpServerT(t, "test")
 	defer h.Close()
 	var o HTTPOptions
-	c, err := NewHTTPClient(context.Background(), &o)
+	c, err := NewHTTPClient(context.Background(), o)
 	if err != nil {
 		t.Fatalf("Got Error: %v", err)
 	}
@@ -48,7 +48,7 @@ func BenchmarkGet(b *testing.B) {
 	h := httpServerB(b, "test")
 	defer h.Close()
 	var o HTTPOptions
-	c, err := NewHTTPClient(context.Background(), &o)
+	c, err := NewHTTPClient(context.Background(), o)
 	if err != nil {
 		b.Fatalf("Got Error: %v", err)
 	}
@@ -65,7 +65,7 @@ func BenchmarkNewHTTPClient(b *testing.B) {
 	defer h.Close()
 	var o HTTPOptions
 	for x := 0; x < b.N; x++ {
-		_, err := NewHTTPClient(context.Background(), &o)
+		_, err := NewHTTPClient(context.Background(), o)
 		if err != nil {
 			b.Fatalf("Got Error: %v", err)
 		}

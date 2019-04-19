@@ -19,8 +19,8 @@ type OptionsDir struct {
 }
 
 // NewOptionsDir returns a new initialized OptionsDir
-func NewOptionsDir() *OptionsDir {
-	return &OptionsDir{
+func NewOptionsDir() OptionsDir {
+	return OptionsDir{
 		StatusCodesParsed: libgobuster.NewIntSet(),
 		ExtensionsParsed:  libgobuster.NewStringSet(),
 	}

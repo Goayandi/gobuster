@@ -50,48 +50,48 @@ func Execute() {
 	}
 }
 
-func parseGlobalOptions() (*libgobuster.Options, error) {
-	globalopts := libgobuster.NewOptions()
+func parseGlobalOptions() (libgobuster.Options, error) {
+	globalopts := libgobuster.Options{}
 
 	threads, err := rootCmd.Flags().GetInt("threads")
 	if err != nil {
-		return nil, fmt.Errorf("invalid value for threads: %v", err)
+		return globalopts, fmt.Errorf("invalid value for threads: %v", err)
 	}
 
 	if threads <= 0 {
-		return nil, fmt.Errorf("threads must be bigger than 0")
+		return globalopts, fmt.Errorf("threads must be bigger than 0")
 	}
 	globalopts.Threads = threads
 
 	globalopts.Wordlist, err = rootCmd.Flags().GetString("wordlist")
 	if err != nil {
-		return nil, fmt.Errorf("invalid value for wordlist: %v", err)
+		return globalopts, fmt.Errorf("invalid value for wordlist: %v", err)
 	}
 
 	if globalopts.Wordlist == "-" {
 		// STDIN
 	} else if _, err2 := os.Stat(globalopts.Wordlist); os.IsNotExist(err2) {
-		return nil, fmt.Errorf("wordlist file %q does not exist: %v", globalopts.Wordlist, err2)
+		return globalopts, fmt.Errorf("wordlist file %q does not exist: %v", globalopts.Wordlist, err2)
 	}
 
 	globalopts.OutputFilename, err = rootCmd.Flags().GetString("output")
 	if err != nil {
-		return nil, fmt.Errorf("invalid value for output filename: %v", err)
+		return globalopts, fmt.Errorf("invalid value for output filename: %v", err)
 	}
 
 	globalopts.Verbose, err = rootCmd.Flags().GetBool("verbose")
 	if err != nil {
-		return nil, fmt.Errorf("invalid value for verbose: %v", err)
+		return globalopts, fmt.Errorf("invalid value for verbose: %v", err)
 	}
 
 	globalopts.Quiet, err = rootCmd.Flags().GetBool("quiet")
 	if err != nil {
-		return nil, fmt.Errorf("invalid value for quiet: %v", err)
+		return globalopts, fmt.Errorf("invalid value for quiet: %v", err)
 	}
 
 	globalopts.NoProgress, err = rootCmd.Flags().GetBool("noprogress")
 	if err != nil {
-		return nil, fmt.Errorf("invalid value for noprogress: %v", err)
+		return globalopts, fmt.Errorf("invalid value for noprogress: %v", err)
 	}
 
 	return globalopts, nil

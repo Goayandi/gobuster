@@ -15,25 +15,17 @@ import (
 
 // GobusterVhost is the main type to implement the interface
 type GobusterVhost struct {
-	options    *OptionsVhost
-	globalopts *libgobuster.Options
-	http       *libgobuster.HTTPClient
+	options    OptionsVhost
+	globalopts libgobuster.Options
+	http       libgobuster.HTTPClient
 	domain     string
 	baseline1  []byte
 	baseline2  []byte
 }
 
 // NewGobusterVhost creates a new initialized GobusterDir
-func NewGobusterVhost(cont context.Context, globalopts *libgobuster.Options, opts *OptionsVhost) (*GobusterVhost, error) {
-	if globalopts == nil {
-		return nil, fmt.Errorf("please provide valid global options")
-	}
-
-	if opts == nil {
-		return nil, fmt.Errorf("please provide valid plugin options")
-	}
-
-	g := GobusterVhost{
+func NewGobusterVhost(cont context.Context, globalopts libgobuster.Options, opts OptionsVhost) (vhost GobusterVhost, err error) {
+	vhost = GobusterVhost{
 		options:    opts,
 		globalopts: globalopts,
 	}
@@ -48,22 +40,15 @@ func NewGobusterVhost(cont context.Context, globalopts *libgobuster.Options, opt
 		UserAgent:      opts.UserAgent,
 	}
 
-	h, err := libgobuster.NewHTTPClient(cont, &httpOpts)
+	vhost.http, err = libgobuster.NewHTTPClient(cont, httpOpts)
 	if err != nil {
-		return nil, err
+		return vhost, err
 	}
-	g.http = h
-	return &g, nil
+	return vhost, nil
 }
 
 // PreRun is the pre run implementation of gobusterdir
-func (v *GobusterVhost) PreRun() error {
-
-	// add trailing slash
-	if !strings.HasSuffix(v.options.URL, "/") {
-		v.options.URL = fmt.Sprintf("%s/", v.options.URL)
-	}
-
+func (v GobusterVhost) PreRun() error {
 	url, err := url.Parse(v.options.URL)
 	if err != nil {
 		return fmt.Errorf("invalid url %s: %v", v.options.URL, err)
@@ -88,7 +73,7 @@ func (v *GobusterVhost) PreRun() error {
 }
 
 // Run is the process implementation of gobusterdir
-func (v *GobusterVhost) Run(word string) ([]libgobuster.Result, error) {
+func (v GobusterVhost) Run(word string) ([]libgobuster.Result, error) {
 	subdomain := fmt.Sprintf("%s.%s", word, v.domain)
 	status, body, err := v.http.GetWithBody(v.options.URL, subdomain, v.options.Cookies)
 	var ret []libgobuster.Result
@@ -117,7 +102,7 @@ func (v *GobusterVhost) Run(word string) ([]libgobuster.Result, error) {
 }
 
 // ResultToString is the to string implementation of gobusterdir
-func (v *GobusterVhost) ResultToString(r *libgobuster.Result) (*string, error) {
+func (v GobusterVhost) ResultToString(r libgobuster.Result) (string, error) {
 	buf := &bytes.Buffer{}
 
 	statusText := "Found"
@@ -126,15 +111,14 @@ func (v *GobusterVhost) ResultToString(r *libgobuster.Result) (*string, error) {
 	}
 
 	if _, err := fmt.Fprintf(buf, "%s: %s (Status: %d) [Size: %d]\n", statusText, r.Entity, r.StatusCode, *r.Size); err != nil {
-		return nil, err
+		return "", err
 	}
 
-	s := buf.String()
-	return &s, nil
+	return buf.String(), nil
 }
 
 // GetConfigString returns the string representation of the current config
-func (v *GobusterVhost) GetConfigString() (string, error) {
+func (v GobusterVhost) GetConfigString() (string, error) {
 	var buffer bytes.Buffer
 	bw := bufio.NewWriter(&buffer)
 	tw := tabwriter.NewWriter(bw, 0, 5, 3, ' ', 0)

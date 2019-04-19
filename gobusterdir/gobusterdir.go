@@ -15,28 +15,20 @@ import (
 
 // GobusterDir is the main type to implement the interface
 type GobusterDir struct {
-	options    *OptionsDir
-	globalopts *libgobuster.Options
-	http       *libgobuster.HTTPClient
+	options    OptionsDir
+	globalopts libgobuster.Options
+	http       libgobuster.HTTPClient
 }
 
 // GetRequest issues a GET request to the target and returns
 // the status code, length and an error
-func (d *GobusterDir) get(url string) (*int, *int64, error) {
+func (d GobusterDir) get(url string) (*int, *int64, error) {
 	return d.http.Get(url, "", d.options.Cookies)
 }
 
 // NewGobusterDir creates a new initialized GobusterDir
-func NewGobusterDir(cont context.Context, globalopts *libgobuster.Options, opts *OptionsDir) (*GobusterDir, error) {
-	if globalopts == nil {
-		return nil, fmt.Errorf("please provide valid global options")
-	}
-
-	if opts == nil {
-		return nil, fmt.Errorf("please provide valid plugin options")
-	}
-
-	g := GobusterDir{
+func NewGobusterDir(cont context.Context, globalopts libgobuster.Options, opts OptionsDir) (dir GobusterDir, err error) {
+	dir = GobusterDir{
 		options:    opts,
 		globalopts: globalopts,
 	}
@@ -51,21 +43,15 @@ func NewGobusterDir(cont context.Context, globalopts *libgobuster.Options, opts 
 		UserAgent:      opts.UserAgent,
 	}
 
-	h, err := libgobuster.NewHTTPClient(cont, &httpOpts)
+	dir.http, err = libgobuster.NewHTTPClient(cont, httpOpts)
 	if err != nil {
-		return nil, err
+		return dir, err
 	}
-	g.http = h
-	return &g, nil
+	return dir, nil
 }
 
 // PreRun is the pre run implementation of gobusterdir
-func (d *GobusterDir) PreRun() error {
-	// add trailing slash
-	if !strings.HasSuffix(d.options.URL, "/") {
-		d.options.URL = fmt.Sprintf("%s/", d.options.URL)
-	}
-
+func (d GobusterDir) PreRun() error {
 	_, _, err := d.get(d.options.URL)
 	if err != nil {
 		return fmt.Errorf("unable to connect to %s: %v", d.options.URL, err)
@@ -89,7 +75,7 @@ func (d *GobusterDir) PreRun() error {
 }
 
 // Run is the process implementation of gobusterdir
-func (d *GobusterDir) Run(word string) ([]libgobuster.Result, error) {
+func (d GobusterDir) Run(word string) ([]libgobuster.Result, error) {
 	suffix := ""
 	if d.options.UseSlash {
 		suffix = "/"
@@ -131,18 +117,18 @@ func (d *GobusterDir) Run(word string) ([]libgobuster.Result, error) {
 }
 
 // ResultToString is the to string implementation of gobusterdir
-func (d *GobusterDir) ResultToString(r *libgobuster.Result) (*string, error) {
+func (d GobusterDir) ResultToString(r libgobuster.Result) (string, error) {
 	buf := &bytes.Buffer{}
 
 	// Prefix if we're in verbose mode
 	if d.globalopts.Verbose {
 		if d.options.StatusCodesParsed.Contains(r.StatusCode) {
 			if _, err := fmt.Fprintf(buf, "Found: "); err != nil {
-				return nil, err
+				return "", err
 			}
 		} else {
 			if _, err := fmt.Fprintf(buf, "Missed: "); err != nil {
-				return nil, err
+				return "", err
 			}
 		}
 	}
@@ -150,38 +136,37 @@ func (d *GobusterDir) ResultToString(r *libgobuster.Result) (*string, error) {
 	if d.options.StatusCodesParsed.Contains(r.StatusCode) || d.globalopts.Verbose {
 		if d.options.Expanded {
 			if _, err := fmt.Fprintf(buf, "%s", d.options.URL); err != nil {
-				return nil, err
+				return "", err
 			}
 		} else {
 			if _, err := fmt.Fprintf(buf, "/"); err != nil {
-				return nil, err
+				return "", err
 			}
 		}
 		if _, err := fmt.Fprintf(buf, "%s", r.Entity); err != nil {
-			return nil, err
+			return "", err
 		}
 
 		if !d.options.NoStatus {
 			if _, err := fmt.Fprintf(buf, " (Status: %d)", r.StatusCode); err != nil {
-				return nil, err
+				return "", err
 			}
 		}
 
 		if r.Size != nil {
 			if _, err := fmt.Fprintf(buf, " [Size: %d]", *r.Size); err != nil {
-				return nil, err
+				return "", err
 			}
 		}
 		if _, err := fmt.Fprintf(buf, "\n"); err != nil {
-			return nil, err
+			return "", err
 		}
 	}
-	s := buf.String()
-	return &s, nil
+	return buf.String(), nil
 }
 
 // GetConfigString returns the string representation of the current config
-func (d *GobusterDir) GetConfigString() (string, error) {
+func (d GobusterDir) GetConfigString() (string, error) {
 	var buffer bytes.Buffer
 	bw := bufio.NewWriter(&buffer)
 	tw := tabwriter.NewWriter(bw, 0, 5, 3, ' ', 0)

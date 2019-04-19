@@ -38,19 +38,14 @@ type HTTPOptions struct {
 }
 
 // NewHTTPClient returns a new HTTPClient
-func NewHTTPClient(c context.Context, opt *HTTPOptions) (*HTTPClient, error) {
+func NewHTTPClient(c context.Context, opt HTTPOptions) (httpClient HTTPClient, err error) {
 	var proxyURLFunc func(*http.Request) (*url.URL, error)
-	var client HTTPClient
 	proxyURLFunc = http.ProxyFromEnvironment
-
-	if opt == nil {
-		return nil, fmt.Errorf("options is nil")
-	}
 
 	if opt.Proxy != "" {
 		proxyURL, err := url.Parse(opt.Proxy)
 		if err != nil {
-			return nil, fmt.Errorf("proxy URL is invalid (%v)", err)
+			return httpClient, fmt.Errorf("proxy URL is invalid (%v)", err)
 		}
 		proxyURLFunc = http.ProxyURL(proxyURL)
 	}
@@ -64,7 +59,7 @@ func NewHTTPClient(c context.Context, opt *HTTPOptions) (*HTTPClient, error) {
 		redirectFunc = nil
 	}
 
-	client.client = &http.Client{
+	httpClient.client = &http.Client{
 		Timeout:       opt.Timeout,
 		CheckRedirect: redirectFunc,
 		Transport: &http.Transport{
@@ -73,12 +68,12 @@ func NewHTTPClient(c context.Context, opt *HTTPOptions) (*HTTPClient, error) {
 				InsecureSkipVerify: opt.InsecureSSL,
 			},
 		}}
-	client.context = c
-	client.username = opt.Username
-	client.password = opt.Password
-	client.includeLength = opt.IncludeLength
-	client.userAgent = opt.UserAgent
-	return &client, nil
+	httpClient.context = c
+	httpClient.username = opt.Username
+	httpClient.password = opt.Password
+	httpClient.includeLength = opt.IncludeLength
+	httpClient.userAgent = opt.UserAgent
+	return httpClient, nil
 }
 
 // Get gets an URL and returns the status, the length and an error
