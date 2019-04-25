@@ -11,8 +11,3 @@ type Options struct {
 	WildcardForced bool
 	Verbose        bool
 }
-
-// NewOptions returns a new initialized Options object
-func NewOptions() *Options {
-	return &Options{}
-}

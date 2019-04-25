@@ -18,8 +18,8 @@ import (
 // GobusterDNS is the main type to implement the interface
 type GobusterDNS struct {
 	resolver    *net.Resolver
-	globalopts  *libgobuster.Options
-	options     *OptionsDNS
+	globalopts  libgobuster.Options
+	options     OptionsDNS
 	isWildcard  bool
 	wildcardIps libgobuster.StringSet
 }
@@ -35,15 +35,7 @@ func newCustomDialer(server string) func(ctx context.Context, network, address s
 }
 
 // NewGobusterDNS creates a new initialized GobusterDNS
-func NewGobusterDNS(globalopts *libgobuster.Options, opts *OptionsDNS) (*GobusterDNS, error) {
-	if globalopts == nil {
-		return nil, fmt.Errorf("please provide valid global options")
-	}
-
-	if opts == nil {
-		return nil, fmt.Errorf("please provide valid plugin options")
-	}
-
+func NewGobusterDNS(globalopts libgobuster.Options, opts OptionsDNS) (dns GobusterDNS, err error) {
 	resolver := net.DefaultResolver
 	if opts.Resolver != "" {
 		resolver = &net.Resolver{
@@ -52,17 +44,17 @@ func NewGobusterDNS(globalopts *libgobuster.Options, opts *OptionsDNS) (*Gobuste
 		}
 	}
 
-	g := GobusterDNS{
+	dns = GobusterDNS{
 		options:     opts,
 		globalopts:  globalopts,
 		wildcardIps: libgobuster.NewStringSet(),
 		resolver:    resolver,
 	}
-	return &g, nil
+	return dns, nil
 }
 
 // PreRun is the pre run implementation of gobusterdns
-func (d *GobusterDNS) PreRun() error {
+func (d GobusterDNS) PreRun() error {
 	// Resolve a subdomain sthat probably shouldn't exist
 	guid := uuid.New()
 	wildcardIps, err := d.dnsLookup(fmt.Sprintf("%s.%s", guid, d.options.Domain))
@@ -88,7 +80,7 @@ func (d *GobusterDNS) PreRun() error {
 }
 
 // Run is the process implementation of gobusterdns
-func (d *GobusterDNS) Run(word string) ([]libgobuster.Result, error) {
+func (d GobusterDNS) Run(word string) ([]libgobuster.Result, error) {
 	subdomain := fmt.Sprintf("%s.%s", word, d.options.Domain)
 	ips, err := d.dnsLookup(subdomain)
 	var ret []libgobuster.Result
@@ -117,33 +109,32 @@ func (d *GobusterDNS) Run(word string) ([]libgobuster.Result, error) {
 }
 
 // ResultToString is the to string implementation of gobusterdns
-func (d *GobusterDNS) ResultToString(r *libgobuster.Result) (*string, error) {
+func (d GobusterDNS) ResultToString(r libgobuster.Result) (string, error) {
 	buf := &bytes.Buffer{}
 
 	if r.StatusCode == 404 {
 		if _, err := fmt.Fprintf(buf, "Missing: %s\n", r.Entity); err != nil {
-			return nil, err
+			return "", err
 		}
 	} else if d.options.ShowIPs {
 		if _, err := fmt.Fprintf(buf, "Found: %s [%s]\n", r.Entity, r.Extra); err != nil {
-			return nil, err
+			return "", err
 		}
 	} else if d.options.ShowCNAME {
 		if _, err := fmt.Fprintf(buf, "Found: %s [%s]\n", r.Entity, r.Extra); err != nil {
-			return nil, err
+			return "", err
 		}
 	} else {
 		if _, err := fmt.Fprintf(buf, "Found: %s\n", r.Entity); err != nil {
-			return nil, err
+			return "", err
 		}
 	}
 
-	s := buf.String()
-	return &s, nil
+	return buf.String(), nil
 }
 
 // GetConfigString returns the string representation of the current config
-func (d *GobusterDNS) GetConfigString() (string, error) {
+func (d GobusterDNS) GetConfigString() (string, error) {
 	var buffer bytes.Buffer
 	bw := bufio.NewWriter(&buffer)
 	tw := tabwriter.NewWriter(bw, 0, 5, 3, ' ', 0)
@@ -210,13 +201,13 @@ func (d *GobusterDNS) GetConfigString() (string, error) {
 	return strings.TrimSpace(buffer.String()), nil
 }
 
-func (d *GobusterDNS) dnsLookup(domain string) ([]string, error) {
+func (d GobusterDNS) dnsLookup(domain string) ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), d.options.Timeout)
 	defer cancel()
 	return d.resolver.LookupHost(ctx, domain)
 }
 
-func (d *GobusterDNS) dnsLookupCname(domain string) (string, error) {
+func (d GobusterDNS) dnsLookupCname(domain string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), d.options.Timeout)
 	defer cancel()
 	time.Sleep(time.Second)

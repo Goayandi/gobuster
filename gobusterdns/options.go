@@ -13,8 +13,3 @@ type OptionsDNS struct {
 	Resolver       string
 	Timeout        time.Duration
 }
-
-// NewOptionsDNS returns a new initialized OptionsDNS
-func NewOptionsDNS() *OptionsDNS {
-	return &OptionsDNS{}
-}

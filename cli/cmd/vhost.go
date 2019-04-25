@@ -29,16 +29,15 @@ func runVhost(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func parseVhostOptions() (*libgobuster.Options, *gobustervhost.OptionsVhost, error) {
-	globalopts, err := parseGlobalOptions()
+func parseVhostOptions() (globalopts libgobuster.Options, plugin gobustervhost.OptionsVhost, err error) {
+	globalopts, err = parseGlobalOptions()
 	if err != nil {
-		return nil, nil, err
+		return globalopts, plugin, err
 	}
-	var plugin gobustervhost.OptionsVhost
 
 	httpOpts, err := parseCommonHTTPOptions(cmdVhost)
 	if err != nil {
-		return nil, nil, err
+		return globalopts, plugin, err
 	}
 	plugin.Password = httpOpts.Password
 	plugin.URL = httpOpts.URL
@@ -50,7 +49,7 @@ func parseVhostOptions() (*libgobuster.Options, *gobustervhost.OptionsVhost, err
 	plugin.FollowRedirect = httpOpts.FollowRedirect
 	plugin.InsecureSSL = httpOpts.InsecureSSL
 
-	return globalopts, &plugin, nil
+	return globalopts, plugin, nil
 }
 
 func init() {

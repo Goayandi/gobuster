@@ -60,6 +60,11 @@ func parseCommonHTTPOptions(cmd *cobra.Command) (libgobuster.OptionsHTTP, error)
 		}
 	}
 
+	// add trailing slash
+	if !strings.HasSuffix(options.URL, "/") {
+		options.URL = fmt.Sprintf("%s/", options.URL)
+	}
+
 	options.Cookies, err = cmd.Flags().GetString("cookies")
 	if err != nil {
 		return options, fmt.Errorf("invalid value for cookies: %v", err)

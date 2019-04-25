@@ -30,17 +30,18 @@ func runDir(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func parseDirOptions() (*libgobuster.Options, *gobusterdir.OptionsDir, error) {
-	globalopts, err := parseGlobalOptions()
+func parseDirOptions() (globalopts libgobuster.Options, plugin gobusterdir.OptionsDir, err error) {
+	globalopts, err = parseGlobalOptions()
 	if err != nil {
-		return nil, nil, err
+		return globalopts, plugin, err
 	}
 
-	plugin := gobusterdir.NewOptionsDir()
+	plugin = gobusterdir.NewOptionsDir()
 
-	httpOpts, err := parseCommonHTTPOptions(cmdDir)
+	var httpOpts libgobuster.OptionsHTTP
+	httpOpts, err = parseCommonHTTPOptions(cmdDir)
 	if err != nil {
-		return nil, nil, err
+		return globalopts, plugin, err
 	}
 	plugin.Password = httpOpts.Password
 	plugin.URL = httpOpts.URL
@@ -54,51 +55,51 @@ func parseDirOptions() (*libgobuster.Options, *gobusterdir.OptionsDir, error) {
 
 	plugin.Extensions, err = cmdDir.Flags().GetString("extensions")
 	if err != nil {
-		return nil, nil, fmt.Errorf("invalid value for extensions: %v", err)
+		return globalopts, plugin, fmt.Errorf("invalid value for extensions: %v", err)
 	}
 
 	if plugin.Extensions != "" {
 		ret, err := helper.ParseExtensions(plugin.Extensions)
 		if err != nil {
-			return nil, nil, fmt.Errorf("invalid value for extensions: %v", err)
+			return globalopts, plugin, fmt.Errorf("invalid value for extensions: %v", err)
 		}
 		plugin.ExtensionsParsed = ret
 	}
 
 	plugin.StatusCodes, err = cmdDir.Flags().GetString("statuscodes")
 	if err != nil {
-		return nil, nil, fmt.Errorf("invalid value for statuscodes: %v", err)
+		return globalopts, plugin, fmt.Errorf("invalid value for statuscodes: %v", err)
 	}
 
 	ret, err := helper.ParseStatusCodes(plugin.StatusCodes)
 	if err != nil {
-		return nil, nil, fmt.Errorf("invalid value for statuscodes: %v", err)
+		return globalopts, plugin, fmt.Errorf("invalid value for statuscodes: %v", err)
 	}
 	plugin.StatusCodesParsed = ret
 
 	plugin.UseSlash, err = cmdDir.Flags().GetBool("addslash")
 	if err != nil {
-		return nil, nil, fmt.Errorf("invalid value for addslash: %v", err)
+		return globalopts, plugin, fmt.Errorf("invalid value for addslash: %v", err)
 	}
 
 	plugin.Expanded, err = cmdDir.Flags().GetBool("expanded")
 	if err != nil {
-		return nil, nil, fmt.Errorf("invalid value for expanded: %v", err)
+		return globalopts, plugin, fmt.Errorf("invalid value for expanded: %v", err)
 	}
 
 	plugin.NoStatus, err = cmdDir.Flags().GetBool("nostatus")
 	if err != nil {
-		return nil, nil, fmt.Errorf("invalid value for nostatus: %v", err)
+		return globalopts, plugin, fmt.Errorf("invalid value for nostatus: %v", err)
 	}
 
 	plugin.IncludeLength, err = cmdDir.Flags().GetBool("includelength")
 	if err != nil {
-		return nil, nil, fmt.Errorf("invalid value for includelength: %v", err)
+		return globalopts, plugin, fmt.Errorf("invalid value for includelength: %v", err)
 	}
 
 	plugin.WildcardForced, err = cmdDir.Flags().GetBool("wildcard")
 	if err != nil {
-		return nil, nil, fmt.Errorf("invalid value for wildcard: %v", err)
+		return globalopts, plugin, fmt.Errorf("invalid value for wildcard: %v", err)
 	}
 
 	return globalopts, plugin, nil
